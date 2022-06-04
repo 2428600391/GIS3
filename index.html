@@ -1,0 +1,326 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChangetheBasemap</title>
+    <style>
+        html,
+        body,
+        #mapDiv {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+		#map1,#map2{
+		            float:left;
+		            width: 49.5%;
+		        }
+		#map1{
+		            border-right: 2px solid #999;
+		        }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.20/esri/themes/light/main.css">
+	
+    <script src="https://js.arcgis.com/4.20/"></script>
+		
+    <script type="text/javascript">
+		var map,layer,
+		            visible=[],numerb,
+		            setLayerVisibility,show_layer,delayer,displayFullName,displayFullName2,displayFullName3,displayFullName4;
+					
+        require([
+            "esri/config",
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/TileLayer",
+			"esri/layers/FeatureLayer",
+			"esri/layers/GeoJSONLayer",
+			"esri/renderers/UniqueValueRenderer",
+			"esri/tasks/support/Query",
+			"esri/tasks/QueryTask",
+			"esri/symbols/SimpleFillSymbol",
+			"esri/symbols/SimpleLineSymbol",
+			"dojo/on",
+			"dojo/dom",
+			"dojo/dom-attr",
+			"dojo/domReady!",
+			"esri/Color"
+			
+        ], function(esriConfig, Map, MapView,TileLayer,FeatureLayer,GeoJSONLayer,UniqueValueRenderer,Query,QueryTask,SimpleFillSymbol,SimpleLineSymbol,on,
+                     dom,
+                     domAttr,
+					 Color) {
+             esriConfig.apiKey = "AAPK56e3ac027f044c4089d8ceec232fc05dYaOuzVRzm8tMRqvzOvDvIEevbqJ85yppn9PacU6cy4duurJrVK9wo_8BcWO8i8bi";
+            //创建地图
+            const map01 = new Map({
+                basemap: "arcgis-topographic"
+            });
+            //创建地图视图
+			document.getElementById("basemap01").addEventListener("click",function(){
+			      	map01.basemap="arcgis-topographic";
+			      });
+			document.getElementById("basemap02").addEventListener("click",function(){
+				        	map01.basemap="arcgis-imagery";
+				  });
+            const view = new MapView({
+                container: "mapDiv",
+                map: map01,
+                center: [-118.805, 34.027],
+                zoom: 13
+
+            });
+			//添加图层
+			var numerb=0;
+			document.getElementById("addlayer").addEventListener("click",function(){
+								var id=document.getElementById("图层").value;
+								alert(id);
+								// var dynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer("http://localhost:6080/arcgis/rest/services/firstTest/firstService/MapServer");
+								var layer = new FeatureLayer({
+								 	    url:id
+										// url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0"
+									});
+									alert(layer.id);
+									// Add layer to map 
+									map01.add(layer);
+									document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"</div>";
+									//添加删除button
+									// document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>";
+									// document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"</div>";
+
+				  });
+			//添加Json图层
+			document.getElementById("addjsonlayer").addEventListener("click",function(){
+								var id=document.getElementById("图层").value;
+								alert(id);
+								// var dynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer("http://localhost:6080/arcgis/rest/services/firstTest/firstService/MapServer");
+								var layer = new GeoJSONLayer({
+								 	    url:id
+										// url:"https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0"
+									});
+									alert(layer.id);
+									// Add layer to map 
+									map01.add(layer);
+									document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"</div>";
+									//添加删除button
+									// document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>";
+									// document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"</div>";
+			
+				  });
+			
+			//显示图层数量
+			document.getElementById("show_number").addEventListener("click",function(){
+								alert(map01.layers.length);
+				  });
+			
+				  
+		    //添加比例尺
+			view.watch("stationary",function(){
+									  document.getElementById("比例尺").innerText="1:"+view.scale;
+									}); 
+			//显示鼠标移动的坐标 
+			view.on("pointer-move", function (event) {
+			
+			  let point = view.toMap({x: event.x, y: event.y});
+			  document.getElementById("经纬度").innerText="经纬度："+point.x+","+point.y;
+
+			});
+			//构造setVisibility函数
+			setLayerVisibility = function(element)
+			                {
+			                    //用query获取css为listCss的元素数组
+			                    var inputs = element.id;
+								var layer=map01.findLayerById(inputs);
+								layer.visible=element.checked;
+								alert(layer.visible);
+								// layer.setLayerVisibility(element.checked);
+			                    // visible = [];
+			                    //对checkbox数组进行变量把选中的id添加到visible
+			                    // for(var i=0;i<inputs.length;i++)
+			                    // {
+			                    //     if(inputs[i].checked)
+			                    //     {
+			                    //         visible.push(inputs[i].id);
+			                    //     }
+			                    // }
+			                    // //设置可视图层
+			                    // map01.layers.setVisibleLayers(visible);
+			                }
+			//聚焦函数				
+			show_layer = function(element)
+						    {
+								//是否显示索引图层
+								var bool=element.id;
+								var layer=map01.findLayerById(bool);
+								window.alert(layer.visible);
+								if(layer.visible==true){
+									layer.when(function(){
+									  view.extent = layer.fullExtent;
+									});
+								}	  
+							}
+			//删除函数
+			dellayer  = function(element)
+							{
+								var bool=element.id;
+								var layer=map01.findLayerById(bool);
+								map01.remove(layer);
+								var del=document.getElementById('div'+bool);
+								del.remove();
+							}
+			//下一步 点击下一步，不断查询，最后将所有点和线都显示
+			var next_num=0;
+			nextstep = function(element)
+						{
+							// 创建 XMLHttpRequest 对象
+							var response;
+							           var request = new XMLHttpRequest();
+							           // 实例化请求对象
+							           request.open("GET", "./林徽因Line.json");
+							           // 监听 readyState 的变化
+							           request.onreadystatechange = function() {
+							               // 检查请求是否成功
+							               if(this.readyState === 4 && this.status === 200) {
+							                   // 将来自服务器的响应插入当前页面
+							                   response = this.responseText;
+							               }
+										alert("sucess");
+							           };
+							           // 将请求发送到服务器
+							           request.send();
+									   
+						}
+						
+			displayFullName=function () {
+			     layer = new GeoJSONLayer({
+			      url:"./林徽因point.json"
+			    });
+			    	alert(layer.id);
+			    	// Add layer to map 
+			    	map01.add(layer);
+			    	document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"</div>";
+					displayFullName4();
+				}
+		//							
+		displayFullName2 = function(){
+			 layer = new GeoJSONLayer({
+			  url:"./china_province.json"
+			});
+				alert(layer.id);
+				// Add layer to map 
+				map01.add(layer);
+				document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"</div>";
+		}
+		//							
+		displayFullName3 = function(){
+			 layer = new GeoJSONLayer({
+			  url:"./中国省份shp.json",
+			});
+
+				alert(layer.id);
+				// Add layer to map 
+				map01.add(layer);
+				document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"</div>";
+		}
+		displayFullName4 =function(){
+			 layer = new GeoJSONLayer({
+			  url:"./林徽因Line.json",
+			});
+
+				alert(layer.id);
+				// Add layer to map 
+				map01.add(layer);
+				document.getElementById("html").innerHTML=document.getElementById("html").innerHTML+"<div  id='div"+layer.id+"'><input id='"+layer.id+"' name='layerList' class='listCss"+numerb+"' type='checkbox' value='checkbox' onclick='setLayerVisibility(this)' "+(layer.defaultVisibility ? "checked":"")+" />"+layer.id+"<button type='button' id='"+layer.id+"'onclick='show_layer(this)' class='mui-btn mui-btn-blue mui-btn-block'>聚焦图层</button>"+"<button type='button' id='"+layer.id+"'onclick='dellayer(this)' class='mui-btn mui-btn-blue mui-btn-block'>删除</button>"+"<button type='button' id='"+layer.id+"'onclick='nextstep(this)' class='mui-btn mui-btn-blue mui-btn-block'>下一步</button>"+"</div>";
+		}
+		//
+		// //点击图层
+		// var layerView;
+		// view.whenLayerView(layer).then(function (lv) { layerView = lv });
+		// view.on("click", function (evt) {
+		//         //这里是指点击到这个图层
+		// 		if (layerView) {
+		// 			dojo.connect(map, "onClick", executeQueryTask);//监听click事件，当用户点击地图时执行executeQueryTask方法 executeQueryTask是我构造的函数
+		// 			let query = new Query();//查询的命令，过滤器
+		// 			let queryTask = new QueryTask();
+		// 			query.where = "STATE_NAME = 'Washington'";
+		// 			query.outSpatialReference = { wkid:102100 };
+		// 			query.returnGeometry = true;
+		// 			query.outFields = [ "CITY_NAME" ]; //输出的字段属性
+		// 			queryTask.execute(query).then(function(results){
+		// 			    // Results.graphics contains the graphics returned from query
+		// 			  });
+		// 			symbol = new SimpleFillSymbol
+		// 			       (SimpleFillSymbol.STYLE_SOLID,
+		// 			       new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+		// 			       "#33cc33"), "red");
+		// 			function executeQueryTask(evt) {
+		// 			        //用户点击onClick事件返回地图上EVT点.
+		// 			        //包含在MapPoint(esri.geometry.point)和screenPoint(pixel像素点).
+		// 			        //设置查询几何等于evt.mapPoint
+		// 			        query.geometry = evt.mapPoint;
+					
+		// 			        //执行任务和完成showResults
+		// 			        queryTask.execute(query, showResults);
+		// 			      }
+					
+		// 			function showResults(featureSet) {
+		// 			        //删除地图上所有的图形层
+		// 			        map.graphics.clear();
+					
+		// 			        //QueryTask返回featureSet类型.通过featureSet的循环把他们添加到信息窗口
+		// 			        for (var i=0, il=featureSet.features.length; i<il; i++) {
+		// 			          //从featureSet中得到当前实例.
+		// 			          //从当前实例赋值给graphic
+		// 			        var graphic = featureSet.features[0];
+		// 			        graphic.setSymbol(symbol);
+		// 					//添加当前这个图形到地图图层中
+		// 					 map.graphics.add(graphic);
+		// 				  }		
+		// 				}
+		          
+		
+		// //           layerView.effect = {
+		// //             filter: {
+		// //               where: "T_Speed > " + min
+		// //             },
+		// //             includedEffect: "bloom(150%, 1px, 0.2) saturate(200%)",
+		// //             excludedEffect: "blur(1px) brightness(65%)"
+		// //           }
+		// //         }
+		
+		// //         if (min >= 40) 
+		// //           { min = 5; }
+		// //           else 
+		// //           { min = min + 5; }
+		
+		// //       });
+		
+		//       view.ui.add(
+		//         new Legend({
+		//           view: view
+		//         }),
+		//         "bottom-left"
+		//       );
+		//     }
+		// 	});
+        })
+    </script>
+</head>
+<button type="button" id="basemap01" class="mui-btn mui-btn-blue mui-btn-block">底图1</button>
+<button type="button" id="basemap02" class="mui-btn mui-btn-blue mui-btn-block">底图2</button>
+<button type="button" id="show_number" class="mui-btn mui-btn-blue mui-btn-block">显示图层数量</button>
+<input id="图层"/>添加Feature图层
+<button type="button" id="addlayer" class="mui-btn mui-btn-blue mui-btn-block">addlayer</button>
+<button type="button" id="addjsonlayer" class="mui-btn mui-btn-blue mui-btn-block">addjsonlayer</button></div>
+<b id="比例尺" >比例尺</b>
+<b id="经纬度" >经纬度</b>
+<b id="html" ></b>
+<button type="button" onclick="displayFullName()">林徽因路线图</button>
+<button type="button" onclick="displayFullName2()">中国省份图</button>
+<button type="button" onclick="displayFullName3()">中国省份shp图</button>
+<body>
+    <d id="mapDiv"></d>
+	<p id ="result"></p>
+</body>
+</html>
